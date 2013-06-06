@@ -31,7 +31,16 @@ class ImpressRenderer < Redcarpet::Render::HTML
   end
 
   def block_code code, lang
-    "<pre><code class='prettyprint #{lang}'>#{code}</code></pre>"
+    if lang == 'dot'
+      file = Tempfile.new(['mdpress','.dot'])
+      file << code
+      file.close
+      svg_file = file.path.gsub(%r{.*/},'')+'.svg'
+      puts `dot #{file.path} -Tsvg > ./presentation/#{svg_file}`
+      "<img src='#{svg_file}' />"
+    else
+      "<pre><code class='prettyprint #{lang}'>#{code}</code></pre>"
+    end
   end
 
   def codespan code
@@ -92,4 +101,3 @@ class ImpressRenderer < Redcarpet::Render::HTML
     }
   end
 end
-
