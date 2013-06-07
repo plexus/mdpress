@@ -1,4 +1,5 @@
 require 'redcarpet'
+
 class ImpressRenderer < Redcarpet::Render::HTML
   @attrs = []
   @current = 0
