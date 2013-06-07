@@ -1,5 +1,6 @@
 require 'redcarpet'
 require 'nokogiri'
+require 'hexp/h'
 
 class ImpressRenderer < Redcarpet::Render::HTML
   @attrs = []
@@ -10,6 +11,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
     @attrs = _attrs
     @current = 0
     @opts = _opts
+    @counters = {}
   end
 
   def author= author
@@ -24,11 +26,27 @@ class ImpressRenderer < Redcarpet::Render::HTML
     @title = "<title>#{title}</title>"
   end
 
+  def render_attrs(hsh)
+    hsh.map do |k,v|
+      if v =~ /([\+\-])(\d+)/
+        @counters[k] ||= 0
+        if $1 == ?+
+          @counters[k] += $2.to_i
+        else
+          @counters[k] -= $2.to_i
+        end
+        "#{k}='#{@counters[k]}'"
+      else
+        "#{k}='#{v}'"
+      end
+    end.join(' ')
+  end
+
   def hrule
     # this is how we later inject attributes into pages. what an awful hack.
     @current += 1
     %{</div>
-      <div class='step' #{@attrs[@current]}>
+      <div class='step' #{render_attrs(@attrs[@current])}>
     }
   end
 
@@ -37,24 +55,26 @@ class ImpressRenderer < Redcarpet::Render::HTML
       file = Tempfile.new(['mdpress','.dot'])
       file << code
       file.close
-      svg_file = file.path.gsub(%r{.*/},'')+'.svg'
       (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').tap{|svg| svg.search('polygon').remove}.to_html
     elsif lang == 'notes'
       "<div class='notes' style='display:none;'>#{code}</div>"
     else
-      "<pre><code class='prettyprint #{lang}'>#{code}</code></pre>"
+      H[:pre, [
+          [:code, {class: "prettyprint #{lang}"}, code]
+        ]
+      ].to_html
     end
   end
 
   def codespan code
-    "<code class='inline prettyprint'>#{code}</code>"
+    H[:code, {class: "inline prettyprint"}, code].to_html
   end
 
   def mathjax
     if @opts[:latex]
       %{
         <script type="text/x-mathjax-config">
-          MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+          MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$']]}});
         </script>
         <script type="text/javascript"
           src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
@@ -90,7 +110,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
   <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
   </div>
     <div id="impress">
-    <div class='step' #{@attrs[0]}>
+    <div class='step' #{render_attrs(@attrs[0])}>
     }
   end
 

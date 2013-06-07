@@ -59,16 +59,18 @@ def render opts
   lines = text.split("\n")
   lines.drop_while { |l| l =~ /^\s*$/ }
 
-  attrs = [""]
+  defaults = metadata['defaults'] || {}
+
+  attrs = [defaults.dup]
 
   new_lines = []
   lines.each_with_index do |line, i|
     if line =~ /^=(.*)$/ && (i == 0 || lines[i-1] =~ /^(-\s*){3,}$/)
       line =~ /^=(.*)$/
-      attrs[attrs.size-1] = $~.to_a[1]
+      attrs[attrs.size-1] = defaults.dup.merge(Hash[$1.split(' ').map{|a| k,v=a.split('=') ; [k, eval(v)]}])
       next
     elsif line =~ /^(-\s*){3,}$/
-      attrs << ""
+      attrs << defaults.dup
     end
     new_lines << line
   end
