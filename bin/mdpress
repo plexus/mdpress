@@ -76,19 +76,20 @@ def render opts
   text = new_lines.join("\n")
 
   # now use those attributes and render the file
-  include Redcarpet
-  ImpressRenderer.init_with_attrs attrs, opts
-  ImpressRenderer.author= metadata['author'] if metadata['author']
-  ImpressRenderer.title= metadata['title'] if metadata['title']
-  if File.exist?(STYLESHEET_HEAD)
-    ImpressRenderer.head= File.read(STYLESHEET_HEAD)
-  end
+  ImpressRenderer.new.tap do |mdpress|
+    mdpress.init_with_attrs attrs, opts
+    mdpress.author= metadata['author'] if metadata['author']
+    mdpress.title= metadata['title'] if metadata['title']
+    if File.exist?(STYLESHEET_HEAD)
+      mdpress.head= File.read(STYLESHEET_HEAD)
+    end
 
-  m = Markdown.new(ImpressRenderer, :autolink => true, :fenced_code_blocks => true, :tables => true)
-  log "rendering presentation"
-  f = File.open(DIRNAME + "/index.html", "w+")
-  f.write(m.render(text))
-  f.close
+    m = Redcarpet::Markdown.new(mdpress, :autolink => true, :fenced_code_blocks => true, :tables => true)
+    log "rendering presentation"
+    f = File.open(DIRNAME + "/index.html", "w+")
+    f.write(m.render(text))
+    f.close
+  end
 end
 
 OPTS = Trollop::options do

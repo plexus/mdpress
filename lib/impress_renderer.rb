@@ -1,32 +1,32 @@
 require 'redcarpet'
 class ImpressRenderer < Redcarpet::Render::HTML
-  @@attrs = []
-  @@current = 0
-  @@author, @@head, @@title = nil
+  @attrs = []
+  @current = 0
+  @author, @head, @title = nil
 
-  def self.init_with_attrs _attrs, _opts
-    @@attrs = _attrs
-    @@current = 0
-    @@opts = _opts
+  def init_with_attrs _attrs, _opts
+    @attrs = _attrs
+    @current = 0
+    @opts = _opts
   end
 
-  def self.author= author
-    @@author = "<meta name=\"author\" content=\"#{author}\">"
+  def author= author
+    @author = "<meta name=\"author\" content=\"#{author}\">"
   end
 
-  def self.head= head
-    @@head = head
+  def head= head
+    @head = head
   end
 
-  def self.title= title
-    @@title = "<title>#{title}</title>"
+  def title= title
+    @title = "<title>#{title}</title>"
   end
 
   def hrule
     # this is how we later inject attributes into pages. what an awful hack.
-    @@current += 1
+    @current += 1
     %{</div>
-      <div class='step' #{@@attrs[@@current]}>
+      <div class='step' #{@attrs[@current]}>
     }
   end
 
@@ -37,7 +37,9 @@ class ImpressRenderer < Redcarpet::Render::HTML
       file.close
       svg_file = file.path.gsub(%r{.*/},'')+'.svg'
       puts `dot #{file.path} -Tsvg > ./presentation/#{svg_file}`
-      "<img src='#{svg_file}' />"
+      "<img class='graph dot' src='#{svg_file}' />"
+    elsif lang == 'notes'
+      "<div class='notes' style='display:none;'>#{code}</div>"
     else
       "<pre><code class='prettyprint #{lang}'>#{code}</code></pre>"
     end
@@ -48,7 +50,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
   end
 
   def mathjax
-    if @@opts[:latex]
+    if @opts[:latex]
       %{
         <script type="text/x-mathjax-config">
           MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
@@ -64,9 +66,9 @@ class ImpressRenderer < Redcarpet::Render::HTML
     %{<!DOCTYPE html>
 <html>
   <head>
-    #{@@title}
+    #{@title}
     <link href="css/reset.css" rel="stylesheet" />
-    #{@@author}
+    #{@author}
     <meta charset="utf-8" />
     <meta name="viewport" content="width=1024" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -76,9 +78,9 @@ class ImpressRenderer < Redcarpet::Render::HTML
 <link href="css/highlight.css" type="text/css" rel="stylesheet" />
 <script type="text/javascript" src="js/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
-#{self.mathjax}
+#{mathjax}
     <link href="css/style.css" rel="stylesheet" />
-#{@@head}
+#{@head}
   </head>
 
   <body>
@@ -87,7 +89,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
   <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
   </div>
     <div id="impress">
-    <div class='step' #{@@attrs[0]}>
+    <div class='step' #{@attrs[0]}>
     }
   end
 
