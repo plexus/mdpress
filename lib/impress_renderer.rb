@@ -1,4 +1,5 @@
 require 'redcarpet'
+require 'nokogiri'
 
 class ImpressRenderer < Redcarpet::Render::HTML
   @attrs = []
@@ -37,8 +38,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
       file << code
       file.close
       svg_file = file.path.gsub(%r{.*/},'')+'.svg'
-      puts `dot #{file.path} -Tsvg > ./presentation/#{svg_file}`
-      "<img class='graph dot' src='#{svg_file}' />"
+      (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').tap{|svg| svg.search('polygon').remove}.to_html
     elsif lang == 'notes'
       "<div class='notes' style='display:none;'>#{code}</div>"
     else
