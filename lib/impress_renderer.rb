@@ -55,7 +55,9 @@ class ImpressRenderer < Redcarpet::Render::HTML
       file = Tempfile.new(['mdpress','.dot'])
       file << code
       file.close
-      (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').tap{|svg| svg.search('polygon').remove}.to_html
+      "<div class='dot-wrap'>" +
+        (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').tap{|svg| svg.search('polygon').first.remove}.to_html +
+        "</div>"
     elsif lang == 'notes'
       "<div class='notes' style='display:none;'>#{code}</div>"
     else
