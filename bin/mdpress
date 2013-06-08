@@ -54,10 +54,11 @@ end
 
 def render opts
   text, metadata = extract_metadata(readfile(FILENAME))
+
   # ugly hack to get attributes for impress.js
   # TODO make this pretty
-  lines = text.split("\n")
-  lines.drop_while { |l| l =~ /^\s*$/ }
+  lines = text.split("\n").reject{|l| l=~ /\A!!/ }
+  lines.drop_while { |l| l =~ /^$/ }
 
   defaults = metadata['defaults'] || {}
 
@@ -67,7 +68,7 @@ def render opts
   lines.each_with_index do |line, i|
     if line =~ /^=(.*)$/ && (i == 0 || lines[i-1] =~ /^(-\s*){3,}$/)
       line =~ /^=(.*)$/
-      attrs[attrs.size-1] = defaults.dup.merge(Hash[$1.split(' ').map{|a| k,v=a.split('=') ; [k, eval(v)]}])
+      attrs[attrs.size-1] = defaults.dup.merge(Hash[$1.split(' ').map{|a| k,v=a.split('=') ; [k, eval(v.to_s)]}])
       next
     elsif line =~ /^(-\s*){3,}$/
       attrs << defaults.dup
@@ -79,6 +80,7 @@ def render opts
 
   # now use those attributes and render the file
   ImpressRenderer.new.tap do |mdpress|
+    mdpress.dest = DIRNAME
     mdpress.init_with_attrs attrs, opts
     mdpress.author= metadata['author'] if metadata['author']
     mdpress.title= metadata['title'] if metadata['title']

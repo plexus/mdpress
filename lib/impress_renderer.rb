@@ -3,6 +3,8 @@ require 'nokogiri'
 require 'hexp/h'
 
 class ImpressRenderer < Redcarpet::Render::HTML
+  attr_accessor :dest
+
   @attrs = []
   @current = 0
   @author, @head, @title = nil
@@ -27,6 +29,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
   end
 
   def render_attrs(hsh)
+    "class='step #{hsh.delete('class')}' "+
     hsh.map do |k,v|
       if v =~ /([\+\-])(\d+)/
         @counters[k] ||= 0
@@ -46,7 +49,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
     # this is how we later inject attributes into pages. what an awful hack.
     @current += 1
     %{</div>
-      <div class='step' #{render_attrs(@attrs[@current])}>
+      <div #{render_attrs(@attrs[@current])}>
     }
   end
 
@@ -70,6 +73,13 @@ class ImpressRenderer < Redcarpet::Render::HTML
 
   def codespan code
     H[:code, {class: "inline prettyprint"}, code].to_html
+  end
+
+  def image link, title, alt
+    if File.exist?("images/#{link}")
+      `cp images/#{link} #{dest}/#{link}`
+    end
+    H[:img, {src: link, alt: alt}, title].to_html
   end
 
   def mathjax
@@ -112,7 +122,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
   <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
   </div>
     <div id="impress">
-    <div class='step' #{render_attrs(@attrs[0])}>
+    <div #{render_attrs(@attrs[0])}>
     }
   end
 
