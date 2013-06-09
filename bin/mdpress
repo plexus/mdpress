@@ -82,8 +82,9 @@ def render opts
   ImpressRenderer.new.tap do |mdpress|
     mdpress.dest = DIRNAME
     mdpress.init_with_attrs attrs, opts
-    mdpress.author= metadata['author'] if metadata['author']
-    mdpress.title= metadata['title'] if metadata['title']
+    mdpress.author = metadata['author'] if metadata['author']
+    mdpress.title  = metadata['title']  if metadata['title']
+    mdpress.transition_duration = metadata.fetch('transition-duration', 1000)
     if File.exist?(STYLESHEET_HEAD)
       mdpress.head= File.read(STYLESHEET_HEAD)
     end

@@ -3,7 +3,7 @@ require 'nokogiri'
 require 'hexp/h'
 
 class ImpressRenderer < Redcarpet::Render::HTML
-  attr_accessor :dest
+  attr_accessor :dest, :transition_duration
 
   @attrs = []
   @current = 0
@@ -121,7 +121,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
   <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
   <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
   </div>
-    <div id="impress">
+    <div id="impress" data-transition-duration="#{transition_duration}">
     <div #{render_attrs(@attrs[0])}>
     }
   end
