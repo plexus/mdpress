@@ -62,13 +62,27 @@ def render opts
 
   defaults = metadata['defaults'] || {}
 
+  metadata.fetch('images', []).each do |img|
+    if File.exist?("images/#{img}")
+      `cp images/#{img} #{DIRNAME}/#{img}`
+    end
+  end
+
   attrs = [defaults.dup]
 
   new_lines = []
   lines.each_with_index do |line, i|
     if line =~ /^=(.*)$/ && (i == 0 || lines[i-1] =~ /^(-\s*){3,}$/)
       line =~ /^=(.*)$/
-      attrs[attrs.size-1] = defaults.dup.merge(Hash[$1.split(' ').map{|a| k,v=a.split('=') ; [k, eval(v.to_s)]}])
+      attr_pairs=[]
+      $1.split(' ').each do |str|
+        if str =~ /=/
+          attr_pairs << str
+        else
+          attr_pairs.last << ' ' << str
+        end
+      end
+      attrs[attrs.size-1] = defaults.dup.merge(Hash[attr_pairs.map{|a| k,v=a.split('=') ; [k, eval(v.to_s)]}])
       next
     elsif line =~ /^(-\s*){3,}$/
       attrs << defaults.dup

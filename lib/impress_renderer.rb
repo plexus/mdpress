@@ -59,7 +59,7 @@ class ImpressRenderer < Redcarpet::Render::HTML
       file << code
       file.close
       "<div class='dot-wrap'>" +
-        (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').tap{|svg| svg.search('polygon').first.remove}.to_html +
+        (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').first.tap{|svg| svg.search('polygon').first.remove; svg['width']='600px' ; svg.attributes['height'].remove }.to_html +
         "</div>"
     elsif lang == 'notes'
       "<div class='notes' style='display:none;'>#{code}</div>"
