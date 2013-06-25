@@ -54,12 +54,13 @@ class ImpressRenderer < Redcarpet::Render::HTML
   end
 
   def block_code code, lang
-    if lang == 'dot'
+    if lang =~ /^dot/
+      _, size = lang.split('-')
       file = Tempfile.new(['mdpress','.dot'])
       file << code
       file.close
       "<div class='dot-wrap'>" +
-        (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').first.tap{|svg| svg.search('polygon').first.remove; svg['width']='600px' ; svg.attributes['height'].remove }.to_html +
+        (Nokogiri(`dot #{file.path} -Tsvg`)/'svg').first.tap{|svg| svg.search('polygon').first.remove; svg['width']=(size||'600')+'px' ; svg.attributes['height'].remove }.to_html +
         "</div>"
     elsif lang == 'notes'
       "<div class='notes' style='display:none;'>#{code}</div>"
@@ -111,6 +112,17 @@ class ImpressRenderer < Redcarpet::Render::HTML
 <link href="css/highlight.css" type="text/css" rel="stylesheet" />
 <script type="text/javascript" src="js/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
+	<script type="text/javascript">
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-16178122-1']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+	  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+	</script>
 #{mathjax}
     <link href="css/style.css" rel="stylesheet" />
 #{@head}
